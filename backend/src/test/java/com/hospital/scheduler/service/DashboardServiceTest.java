@@ -135,7 +135,12 @@ class DashboardServiceTest {
     @DisplayName("getPeriodSummaries -> per-period schedule + staff count")
     void periodSummaries() {
         when(periodRepository.findAll()).thenReturn(List.of(period));
-        when(scheduleRepository.findByPeriodId(1)).thenReturn(List.of(schedule));
+        // Service now uses aggregateByPeriod() (BE#20 N+1 fix) instead of
+        // a per-period findByPeriodId() loop. Mock returns Object[] rows of
+        // [periodId, totalSchedules, distinctStaff].
+        when(scheduleRepository.aggregateByPeriod()).thenReturn(java.util.List.<Object[]>of(
+                new Object[]{ 1, 1L, 1L }
+        ));
 
         var result = dashboardService.getPeriodSummaries();
 

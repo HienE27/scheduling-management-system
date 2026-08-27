@@ -2,6 +2,7 @@ package com.hospital.scheduler.service;
 
 import com.hospital.scheduler.entity.*;
 import com.hospital.scheduler.repository.*;
+import com.hospital.scheduler.security.AuthContextService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -18,6 +19,8 @@ class RoleServiceTest {
     @Mock private AppRoleRepository roleRepository;
     @Mock private AppPermissionRepository permissionRepository;
     @Mock private RolePermissionRepository rolePermissionRepository;
+    @Mock private AuditHistoryService auditHistoryService;
+    @Mock private AuthContextService authContextService;
 
     @InjectMocks private RoleService roleService;
 

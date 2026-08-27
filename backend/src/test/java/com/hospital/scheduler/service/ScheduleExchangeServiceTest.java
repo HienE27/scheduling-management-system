@@ -638,8 +638,13 @@ class ScheduleExchangeServiceTest {
         }
 
         @Test
-        @DisplayName("Post-swap re-solve throws exception -> approve vẫn succeed (best-effort, log warn)")
+        @DisplayName("Post-swap re-solve throws exception -> approve BỊ BLOCK (BUGFIX #6 rollback contract)")
         void postSwapReSolveThrows_shouldNotBlockApprove() {
+            // Updated for BUGFIX #6: the production code (ScheduleExchangeService
+            // line 504-516) catches re-solve exceptions and re-throws as
+            // BadRequestException so the surrounding @Transactional rolls back
+            // the swap. The pre-fix behavior of "log warn and continue" was a
+            // silent inconsistency (swap committed even when period infeasible).
             Staff reviewer = Staff.builder().id(3).username("manager").fullName("Manager").build();
             when(exchangeRepository.findById(1)).thenReturn(Optional.of(testExchange));
             when(staffRepository.findById(3)).thenReturn(Optional.of(reviewer));
@@ -672,9 +677,11 @@ class ScheduleExchangeServiceTest {
             when(cspScheduler.reSolve(any(), any(), any(), any(), any()))
                     .thenThrow(new RuntimeException("CSP internal boom"));
 
-            ScheduleExchangeResponse result = exchangeService.approveExchange(1, 3, "Đồng ý đổi");
-
-            assertThat(result.getStatus()).isEqualTo(ScheduleExchangeResponse.ExchangeStatus.APPROVED);
+            assertThatThrownBy(() -> exchangeService.approveExchange(1, 3, "Đồng ý đổi"))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("CSP internal boom");
+            // BUGFIX #6: the swap must be rejected (transaction rolled back),
+            // not silently committed with a warn log.
         }
 
         @Test
@@ -842,6 +849,13 @@ class ScheduleExchangeServiceTest {
             when(conflictDetectionService.detectAllConflicts(anyInt(), any(), anyString(), any()))
                     .thenReturn(Collections.emptyList());
             when(compensationDayRepository.save(any(CompensationDay.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+            // Schedule swap happens BEFORE re-solve, so we must mock save() to
+            // return a non-null Schedule — otherwise copyCompensationFkAndDelete
+            // NPEs on saved.getId() before we ever reach the re-solve path.
+            when(scheduleRepository.save(any(Schedule.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+            when(exchangeRepository.save(any(ScheduleExchange.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
             when(schedulingResultLoader.loadPreviousFromDb(eq(1), any())).thenReturn(null);
             when(shiftRequirementRepository.findByPeriodId(1)).thenReturn(Collections.emptyList());
