@@ -15,8 +15,8 @@ env:
   JAVA_VERSION: '17'
   NODE_VERSION: '20'
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ${{ github.actor }}/hospital-scheduler-backend
-  FRONTEND_IMAGE: ${{ github.actor }}/hospital-scheduler-frontend
+  BACKEND_IMAGE: ${{ github.actor_lower }}/hospital-scheduler-backend
+  FRONTEND_IMAGE: ${{ github.actor_lower }}/hospital-scheduler-frontend
 
 jobs:
   # =====================
@@ -44,7 +44,6 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-        working-directory: ./backend
 
       - name: Make Maven wrapper executable
         if: steps.mvnw-check.outputs.exists == 'true'
@@ -57,7 +56,6 @@ jobs:
           else
             mvn package -DskipTests -f backend/pom.xml
           fi
-        working-directory: ${{ github.workspace }}
 
       - name: Upload backend artifacts
         uses: actions/upload-artifact@v4
