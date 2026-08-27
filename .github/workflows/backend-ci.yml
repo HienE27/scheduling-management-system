@@ -25,7 +25,7 @@ on:
 env:
   JAVA_VERSION: '17'
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.actor_lower }}/hospital-scheduler-backend
+  IMAGE_NAME: hiene27/hospital-scheduler-backend
 
 jobs:
   build:

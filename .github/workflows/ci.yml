@@ -15,8 +15,8 @@ env:
   JAVA_VERSION: '17'
   NODE_VERSION: '20'
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ${{ github.actor_lower }}/hospital-scheduler-backend
-  FRONTEND_IMAGE: ${{ github.actor_lower }}/hospital-scheduler-frontend
+  BACKEND_IMAGE: hiene27/hospital-scheduler-backend
+  FRONTEND_IMAGE: hiene27/hospital-scheduler-frontend
 
 jobs:
   # =====================
