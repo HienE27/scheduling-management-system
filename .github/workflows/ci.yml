@@ -200,7 +200,7 @@ jobs:
   # =====================
   docker-build-backend:
     name: Docker Build Backend
-    needs: backend-build
+    needs: []
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -208,12 +208,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download backend artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-jar
-          path: backend/target
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -224,12 +218,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract JAR filename
-        id: jar-info
-        run: |
-          JAR_FILE=$(ls backend/target/*.jar | head -1)
-          echo "file=${JAR_FILE}" >> $GITHUB_OUTPUT
 
       - name: Build and push backend Docker image
         uses: docker/build-push-action@v5
@@ -244,7 +232,7 @@ jobs:
 
   docker-build-frontend:
     name: Docker Build Frontend
-    needs: frontend-build
+    needs: []
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -252,12 +240,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download frontend artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: frontend
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
