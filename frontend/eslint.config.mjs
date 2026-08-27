@@ -26,6 +26,15 @@ const eslintConfig = defineConfig([
     "test_*.js",
     "browser-smoke-test.js",
   ]),
+  {
+    // Playwright fixtures expose helpers named `use` that intentionally
+    // shadow React's `use()` hook. Disable the React rules-of-hooks
+    // check for those files so they pass lint.
+    files: ["tests/e2e/fixtures/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

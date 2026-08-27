@@ -45,5 +45,18 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5",
     "vitest": "^4.1.9"
+  },
+  "pnpm": {
+    "minimumReleaseAge": 1440,
+    "minimumReleaseAgeStrict": false,
+    "allowBuilds": {
+      "esbuild": true,
+      "puppeteer": true,
+      "sharp": false,
+      "unrs-resolver": false
+    },
+    "overrides": {
+      "vite": "^6"
+    }
   }
 }
