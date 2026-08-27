@@ -2,6 +2,10 @@
 
 Website quản lý lịch công tác cho phòng chuyên môn với 4 loại lịch (`L01`-`L04`), backend Spring Boot + MySQL và frontend Next.js.
 
+[![CI/CD](https://img.shields.io/github/actions/workflow-status/tmHieu20-02/business-trip-management/ci.yml?branch=develop&label=ci&logo=github)](https://github.com/tmHieu20-02/business-trip-management/actions/workflows/ci.yml)
+[![Backend](https://img.shields.io/github/actions/workflow-status/tmHieu20-02/business-trip-management/backend-ci.yml?branch=develop&label=backend&logo=github)](https://github.com/tmHieu20-02/business-trip-management/actions/workflows/backend-ci.yml)
+[![Frontend](https://img.shields.io/github/actions/workflow-status/tmHieu20-02/business-trip-management/frontend-ci.yml?branch=develop&label=frontend&logo=github)](https://github.com/tmHieu20-02/business-trip-management/actions/workflows/frontend-ci.yml)
+
 ## Tổng quan
 
 - **Backend**: Spring Boot `4.0.6`, Java `17`, Spring Security, JPA, MySQL, SpringDoc OpenAPI
