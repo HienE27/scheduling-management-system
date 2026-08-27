@@ -4,13 +4,19 @@ FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# Enable corepack so pnpm can be selected by the packageManager field in
+# package.json. Corepack ships with Node 20+ and avoids the version-skew
+# issues we hit with `npm install -g pnpm` (which was grabbing the very
+# latest pnpm that no longer supports our lockfileVersion).
+RUN corepack enable
+RUN corepack prepare pnpm@9 --activate
 
 # Copy package files
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* .npmrc* ./
 
-# Install dependencies (cached if package files haven't changed)
+# Install dependencies. Use --no-frozen-lockfile so the build stays
+# reproducible even when patch versions of pnpm try to re-format the
+# lockfile.
 RUN pnpm install --no-frozen-lockfile
 
 # Stage 2: Build the application
@@ -18,8 +24,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm globally (needed to run pnpm build)
-RUN npm install -g pnpm
+# Same corepack + pnpm@9 setup as the deps stage so the builder matches.
+RUN corepack enable
+RUN corepack prepare pnpm@9 --activate
 
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
