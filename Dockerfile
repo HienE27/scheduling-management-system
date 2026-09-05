@@ -36,9 +36,11 @@ RUN addgroup -g 1001 -S appgroup && \
 
 # Copy the built JAR from the build stage
 COPY --from=build /app/target/*.jar app.jar
+COPY Dockerfile.startup /app/startup.sh
 
-# Set ownership
-RUN chown -R appuser:appgroup /app
+# Set ownership (before USER directive so we can chmod as root)
+RUN chmod +x /app/startup.sh && \
+    chown -R appuser:appgroup /app
 
 # Switch to non-root user
 USER appuser
@@ -51,4 +53,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
 
 # Run the application with bounded JVM heap (Render free tier has 512MB)
-ENTRYPOINT ["java", "-jar", "-Xms256m", "-Xmx512m", "app.jar"]
+ENTRYPOINT ["/app/startup.sh"]
