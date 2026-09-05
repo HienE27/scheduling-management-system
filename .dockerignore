@@ -1,0 +1,50 @@
+# Root-level .dockerignore - applies to all Docker builds with repo-root context
+.git/
+.github/
+.cursor/
+.vscode/
+.trellis/
+.agents/
+
+# Node / frontend artifacts
+**/node_modules/
+**/.next/
+**/.pnpm-store/
+**/out/
+**/dist/
+**/build/
+
+# Logs and env
+*.log
+.env
+.env.local
+.env.*.local
+
+# Test artifacts
+**/coverage/
+**/.pytest_cache/
+**/target/
+
+# IDE
+.DS_Store
+*.tsbuildinfo
+
+# Docs and large media
+docs/
+*.docx
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.mp4
+
+# Trellis/internal scratch
+tmp_bench/
+backup.patch
+before-dryrun-*.patch
+before-dryrun-*.status
+
+# Frontend test artifacts
+frontend/tests/smoke-*.cjs
+docs/evidence/
