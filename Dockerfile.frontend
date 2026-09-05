@@ -10,11 +10,7 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Copy only manifest files first for dependency caching
 COPY frontend/package.json frontend/pnpm-lock.yaml* frontend/.npmrc* ./
-RUN if [ -f pnpm-lock.yaml ]; then \
-      pnpm install --frozen-lockfile; \
-    else \
-      pnpm install; \
-    fi
+RUN pnpm install --no-frozen-lockfile
 
 # Stage 2: Build the Next.js application
 FROM node:20-alpine AS builder
