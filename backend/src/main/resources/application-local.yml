@@ -1,0 +1,44 @@
+# Hospital Scheduler - Local profile (H2 in-memory)
+# Used when MySQL is not available (e.g., Render free tier without DB)
+# Activate: SPRING_PROFILES_ACTIVE=local
+
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  # H2 in-memory database (auto-dropped on shutdown)
+  datasource:
+    url: jdbc:h2:mem:hospital_scheduler;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # H2-specific JPA config
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+    show-sql: false
+
+  # H2 console available at /h2-console
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# Disable mail in local mode (no SMTP server)
+app:
+  email:
+    enabled: false
+  auth:
+    rate-limit:
+      enabled: false
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.hospital.scheduler: INFO
