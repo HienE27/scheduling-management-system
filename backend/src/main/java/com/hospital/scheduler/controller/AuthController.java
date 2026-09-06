@@ -9,6 +9,7 @@ import com.hospital.scheduler.dto.request.BootstrapAdminRequest;
 import com.hospital.scheduler.dto.request.ChangePasswordRequest;
 import com.hospital.scheduler.service.AuthService;
 import com.hospital.scheduler.service.BootstrapAdminService;
+import com.hospital.scheduler.service.BootstrapPermissionsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,6 +38,7 @@ public class AuthController {
     private final AuthService authService;
     private final AuthCookieProperties authCookieProperties;
     private final BootstrapAdminService bootstrapAdminService;
+    private final BootstrapPermissionsService bootstrapPermissionsService;
 
     /**
      * One-time bootstrap endpoint for fresh production databases.
@@ -61,6 +63,26 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(
                 admin.getUsername(),
                 "Admin '" + admin.getUsername() + "' đã được tạo. Bây giờ có thể login."
+        ));
+    }
+
+    /**
+     * One-time endpoint to seed the permission catalog + role-permission matrix.
+     *
+     * <p>Returns 403 if the {@code role_permission} table is not empty (to
+     * protect an existing production RBAC matrix from being clobbered).</p>
+     */
+    @PostMapping("/bootstrap-permissions")
+    @Operation(
+            summary = "Bootstrap permission catalog (fresh DB only)",
+            description = "Tạo permission catalog + role-permission matrix khi database thiếu. " +
+                    "Endpoint tự vô hiệu hóa sau khi role_permission đã có data."
+    )
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> bootstrapPermissions() {
+        var result = bootstrapPermissionsService.bootstrapPermissions();
+        return ResponseEntity.ok(ApiResponse.success(
+                result,
+                "Permission catalog + role-permission matrix đã được seed."
         ));
     }
 
