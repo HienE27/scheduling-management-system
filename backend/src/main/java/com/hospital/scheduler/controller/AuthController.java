@@ -9,6 +9,7 @@ import com.hospital.scheduler.dto.request.BootstrapAdminRequest;
 import com.hospital.scheduler.dto.request.ChangePasswordRequest;
 import com.hospital.scheduler.service.AuthService;
 import com.hospital.scheduler.service.BootstrapAdminService;
+import com.hospital.scheduler.service.BootstrapDemoDataService;
 import com.hospital.scheduler.service.BootstrapPermissionsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +40,7 @@ public class AuthController {
     private final AuthCookieProperties authCookieProperties;
     private final BootstrapAdminService bootstrapAdminService;
     private final BootstrapPermissionsService bootstrapPermissionsService;
+    private final BootstrapDemoDataService bootstrapDemoDataService;
 
     /**
      * One-time bootstrap endpoint for fresh production databases.
@@ -83,6 +85,28 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(
                 result,
                 "Permission catalog + role-permission matrix đã được seed."
+        ));
+    }
+
+    /**
+     * One-time endpoint to seed demo data: specialties, shift types, holidays,
+     * schedule templates, and demo manager/staff users.
+     *
+     * <p>Skips the admin user (already created by {@code /bootstrap-admin}).
+     * Refuses to run if specialty table is non-empty.</p>
+     */
+    @PostMapping("/bootstrap-demo-data")
+    @Operation(
+            summary = "Bootstrap demo data (specialties, shift types, holidays, staff)",
+            description = "Seed dữ liệu demo cho Neon production DB. Tạo 6 chuyên khoa, " +
+                    "4 loại ca (L01-L04), 8 ngày lễ, 8 mẫu lịch, 2 manager + 17 staff demo " +
+                    "(password mặc định: 123456). Endpoint tự vô hiệu hóa sau khi specialty đã có data."
+    )
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> bootstrapDemoData() {
+        var result = bootstrapDemoDataService.bootstrapDemoData();
+        return ResponseEntity.ok(ApiResponse.success(
+                result,
+                "Demo data đã được seed. Đăng nhập với manager1/manager2 hoặc nvminh/tthuhien/... (password: 123456)."
         ));
     }
 
