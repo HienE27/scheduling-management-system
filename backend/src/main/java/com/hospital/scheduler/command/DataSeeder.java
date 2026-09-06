@@ -27,7 +27,7 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Transactional
-@Profile("!test & !local")
+@Profile("!test & !local & !postgres")
 public class DataSeeder implements CommandLineRunner {
 
     private final AppRoleRepository appRoleRepository;

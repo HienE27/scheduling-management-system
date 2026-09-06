@@ -5,8 +5,10 @@ import com.hospital.scheduler.dto.ApiResponse;
 import com.hospital.scheduler.dto.AuthResponse;
 import com.hospital.scheduler.dto.LoginRequest;
 import com.hospital.scheduler.dto.RefreshTokenRequest;
+import com.hospital.scheduler.dto.request.BootstrapAdminRequest;
 import com.hospital.scheduler.dto.request.ChangePasswordRequest;
 import com.hospital.scheduler.service.AuthService;
+import com.hospital.scheduler.service.BootstrapAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +36,33 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthCookieProperties authCookieProperties;
+    private final BootstrapAdminService bootstrapAdminService;
+
+    /**
+     * One-time bootstrap endpoint for fresh production databases.
+     *
+     * <p>Creates the very first admin user (with ADMIN + MANAGER roles) when
+     * the {@code staff} table is empty. Returns 403 once any user exists.</p>
+     *
+     * <p>This is a public, no-auth endpoint by design — production databases
+     * start empty and need a way to bootstrap the first admin without going
+     * through DataSeeder (which would insert ~400 rows and exceed Render's
+     * 5-minute port-scan window).</p>
+     */
+    @PostMapping("/bootstrap-admin")
+    @Operation(
+            summary = "Bootstrap first admin user (fresh DB only)",
+            description = "Tạo admin đầu tiên khi database còn trống. Endpoint tự vô hiệu " +
+                    "hóa sau khi đã có ít nhất 1 user. Dùng để seed production DB mà không cần DataSeeder."
+    )
+    public ResponseEntity<ApiResponse<String>> bootstrapAdmin(
+            @Valid @RequestBody BootstrapAdminRequest request) {
+        var admin = bootstrapAdminService.bootstrapAdmin(request);
+        return ResponseEntity.ok(ApiResponse.success(
+                admin.getUsername(),
+                "Admin '" + admin.getUsername() + "' đã được tạo. Bây giờ có thể login."
+        ));
+    }
 
     @PostMapping("/login")
     @Operation(
