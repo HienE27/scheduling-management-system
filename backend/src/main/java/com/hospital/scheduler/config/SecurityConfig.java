@@ -90,7 +90,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Concrete origins take precedence over patterns.
         configuration.setAllowedOrigins(corsProperties.allowedOrigins());
+        // Wildcard patterns cover ephemeral/preview deployments (Vercel
+        // branches, Render static sites). When set, Spring's CORS filter
+        // uses regex matching against `Origin` request header.
+        configuration.setAllowedOriginPatterns(corsProperties.allowedOriginPatterns());
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",
