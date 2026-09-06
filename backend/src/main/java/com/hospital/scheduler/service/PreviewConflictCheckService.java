@@ -3,6 +3,7 @@ package com.hospital.scheduler.service;
 import com.hospital.scheduler.entity.CompensationDay;
 import com.hospital.scheduler.entity.Schedule;
 import com.hospital.scheduler.repository.CompensationDayRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.ScheduleRepository;
 import com.hospital.scheduler.util.CompensationDateCalculator;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class PreviewConflictCheckService {
 
     private final ScheduleRepository scheduleRepository;
     private final CompensationDayRepository compensationDayRepository;
+    private final DatabaseCompatibilityHelper databaseCompatibilityHelper;
     private final ConflictDetectionService conflictDetectionService;
     private final CompensationDateCalculator compensationDateCalculator;
 
@@ -54,7 +56,7 @@ public class PreviewConflictCheckService {
                             s.getStaff().getId(), compDate);
                     if (!exists) {
                         // Use INSERT IGNORE via native query to avoid DataIntegrityViolationException
-                        compensationDayRepository.insertIgnoreCompensationDay(
+                        databaseCompatibilityHelper.insertCompensationDayIfAbsent(
                                 s.getStaff().getId(),
                                 s.getPeriod().getId(),
                                 savedSchedule.getId(),

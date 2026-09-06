@@ -47,6 +47,7 @@ class ScheduleServiceBulkL01Test {
     @Mock private CompensationDateCalculator compensationDateCalculator;
     @Mock private NotificationService notificationService;
     @Mock private ConflictBroadcastService conflictBroadcastService;
+    @Mock private DatabaseCompatibilityHelper dbCompat;
 
     @InjectMocks
     private ScheduleService scheduleService;
@@ -128,7 +129,7 @@ class ScheduleServiceBulkL01Test {
             assertThat(result.getResults()).hasSize(3);
             verify(scheduleRepository, times(3)).save(any(Schedule.class));
             // L01 creates compensation days via insertIgnoreCompensationDay (batch insert)
-            verify(compensationDayRepository, times(3)).insertIgnoreCompensationDay(anyInt(), anyInt(), anyInt(), any(), any(), anyString());
+            verify(dbCompat, times(3)).insertCompensationDayIfAbsent(anyInt(), anyInt(), anyInt(), any(), any(), anyString());
         }
 
         @Test
@@ -300,7 +301,7 @@ class ScheduleServiceBulkL01Test {
             assertThat(result.getTotalCount()).isEqualTo(3);
             verify(scheduleRepository, times(2)).save(any(Schedule.class));
             // L01 creates compensation days via insertIgnoreCompensationDay (batch insert)
-            verify(compensationDayRepository, times(2)).insertIgnoreCompensationDay(anyInt(), anyInt(), anyInt(), any(), any(), anyString());
+            verify(dbCompat, times(2)).insertCompensationDayIfAbsent(anyInt(), anyInt(), anyInt(), any(), any(), anyString());
         }
     }
 }

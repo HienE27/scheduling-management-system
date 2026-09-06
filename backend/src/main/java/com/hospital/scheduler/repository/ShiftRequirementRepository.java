@@ -58,21 +58,11 @@ public interface ShiftRequirementRepository extends JpaRepository<ShiftRequireme
 
     /**
      * Delete L04 requirements for specialties that have no active staff.
-     * Returns the number of deleted rows.
+     *
+     * <p>Moved to {@link DatabaseCompatibilityHelper} because MySQL multi-table
+     * {@code DELETE alias FROM ...} syntax is rejected by Postgres. Callers
+     * should inject the helper.
      */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(value = """
-        DELETE sr FROM shift_requirement sr
-        WHERE sr.period_id = :periodId
-          AND sr.shift_type_id = 'L04'
-          AND sr.specialty_id IN (
-              SELECT s.id FROM specialty s
-              LEFT JOIN staff st ON st.specialty_id = s.id AND st.active = true
-              GROUP BY s.id
-              HAVING COUNT(st.id) = 0
-          )
-        """, nativeQuery = true)
-    int deleteL04RequirementsWithoutStaff(@Param("periodId") Integer periodId);
 
     /**
      * Find L04 requirements for specialties that have no active staff.

@@ -2,6 +2,7 @@ package com.hospital.scheduler.service.scheduling;
 
 import com.hospital.scheduler.entity.*;
 import com.hospital.scheduler.repository.CompensationDayRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.HolidayRepository;
 import com.hospital.scheduler.repository.ScheduleRepository;
 import com.hospital.scheduler.service.AuditHistoryService;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for {@link SchedulePersistenceService}.
  *
  * <p>Verifies the duplicate-prevention contract: in-memory cache first, then DB,
- * then INSERT IGNORE. Each branch must mark the slot as known in
+ * then INSERT IF ABSENT. Each branch must mark the slot as known in
  * {@link SchedulingStateAccessor#getAllCompensationShiftDates()} so the
  * auto-scheduler never asks twice.
  */
@@ -35,6 +35,7 @@ class SchedulePersistenceServiceTest {
     @Mock private CompensationDayRepository compensationDayRepository;
     @Mock private HolidayRepository holidayRepository;
     @Mock private ScheduleRepository scheduleRepository;
+    @Mock private DatabaseCompatibilityHelper dbCompat;
 
     private CompensationDateCalculator calculator;
     private SchedulingStateAccessor stateAccessor;
@@ -44,7 +45,9 @@ class SchedulePersistenceServiceTest {
     void setUp() {
         calculator = new CompensationDateCalculator(holidayRepository);
         stateAccessor = new SchedulingStateAccessor();
-        persistenceService = new SchedulePersistenceService(auditHistoryService, calculator, stateAccessor, scheduleRepository);
+        persistenceService = new SchedulePersistenceService(
+                auditHistoryService, calculator, stateAccessor, scheduleRepository,
+                compensationDayRepository, dbCompat);
     }
 
     private Schedule buildL01Schedule(SchedulePeriod period, Staff staff, LocalDate workDate) {
@@ -64,14 +67,14 @@ class SchedulePersistenceServiceTest {
     @Test
     void createCompensationDayForAuto_returnsEarlyWhenScheduleIsNull() {
         persistenceService.createCompensationDayForAuto(compensationDayRepository, null);
-        verifyNoInteractions(compensationDayRepository);
+        verifyNoInteractions(compensationDayRepository, dbCompat);
     }
 
     @Test
     void createCompensationDayForAuto_returnsEarlyWhenWorkDateIsNull() {
         Schedule s = Schedule.builder().staff(new Staff()).build();
         persistenceService.createCompensationDayForAuto(compensationDayRepository, s);
-        verifyNoInteractions(compensationDayRepository);
+        verifyNoInteractions(compensationDayRepository, dbCompat);
     }
 
     @Test
@@ -88,7 +91,7 @@ class SchedulePersistenceServiceTest {
 
         persistenceService.createCompensationDayForAuto(compensationDayRepository, s);
 
-        verifyNoInteractions(compensationDayRepository);
+        verifyNoInteractions(compensationDayRepository, dbCompat);
     }
 
     @Test
@@ -105,7 +108,7 @@ class SchedulePersistenceServiceTest {
 
         persistenceService.createCompensationDayForAuto(compensationDayRepository, s);
 
-        verify(compensationDayRepository, never()).insertIgnoreCompensationDay(anyInt(), anyInt(), any(), any(), any(), any());
+        verify(dbCompat, never()).insertCompensationDayIfAbsent(anyInt(), anyInt(), any(), any(), any(), any());
         verify(compensationDayRepository, never()).existsByScheduleId(any());
         assertTrue(stateAccessor.getAllCompensationShiftDates().contains(100 + "_" + compDate));
     }
@@ -127,13 +130,13 @@ class SchedulePersistenceServiceTest {
         when(compensationDayRepository.existsByStaffIdAndCompensationDate(101, compDate))
                 .thenReturn(false);
         when(compensationDayRepository.existsByScheduleId(42)).thenReturn(false);
-        when(compensationDayRepository.insertIgnoreCompensationDay(
+        when(dbCompat.insertCompensationDayIfAbsent(
                 eq(101), eq(7), eq(42), eq(workDate), eq(compDate), any()))
                 .thenReturn(1);
 
         persistenceService.createCompensationDayForAuto(compensationDayRepository, s);
 
-        verify(compensationDayRepository).insertIgnoreCompensationDay(
+        verify(dbCompat).insertCompensationDayIfAbsent(
                 eq(101), eq(7), eq(42), eq(workDate), eq(compDate), any());
         assertTrue(stateAccessor.getAllCompensationShiftDates().contains(101 + "_" + compDate));
     }
@@ -155,14 +158,14 @@ class SchedulePersistenceServiceTest {
         when(compensationDayRepository.existsByStaffIdAndCompensationDate(102, compDate))
                 .thenReturn(false);
         when(compensationDayRepository.existsByScheduleId(42)).thenReturn(false);
-        when(compensationDayRepository.insertIgnoreCompensationDay(
+        when(dbCompat.insertCompensationDayIfAbsent(
                 eq(102), eq(7), eq(42), eq(workDate), eq(compDate), any()))
                 .thenReturn(0);
 
         persistenceService.createCompensationDayForAuto(compensationDayRepository, s);
 
         assertTrue(stateAccessor.getAllCompensationShiftDates().contains(102 + "_" + compDate),
-                "INSERT IGNORE returning 0 means row already existed — cache must still be marked");
+                "INSERT IF ABSENT returning 0 means row already existed — cache must still be marked");
     }
 
     @Test
@@ -182,7 +185,7 @@ class SchedulePersistenceServiceTest {
         when(compensationDayRepository.existsByStaffIdAndCompensationDate(103, compDate))
                 .thenReturn(false);
         when(compensationDayRepository.existsByScheduleId(42)).thenReturn(false);
-        when(compensationDayRepository.insertIgnoreCompensationDay(
+        when(dbCompat.insertCompensationDayIfAbsent(
                 eq(103), eq(7), eq(42), eq(workDate), eq(compDate), any()))
                 .thenThrow(new RuntimeException("DB unreachable"));
 

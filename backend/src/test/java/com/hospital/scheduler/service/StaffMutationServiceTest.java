@@ -11,6 +11,7 @@ import com.hospital.scheduler.exception.ConflictException;
 import com.hospital.scheduler.exception.ForbiddenOperationException;
 import com.hospital.scheduler.exception.ResourceNotFoundException;
 import com.hospital.scheduler.repository.AppRoleRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.ScheduleRepository;
 import com.hospital.scheduler.repository.SpecialtyRepository;
 import com.hospital.scheduler.repository.StaffRepository;
@@ -64,6 +65,7 @@ class StaffMutationServiceTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private CacheEvictor cacheEvictor;
     @Mock private NotificationService notificationService;
+    @Mock private DatabaseCompatibilityHelper databaseCompatibilityHelper;
 
     private StaffMutationService service;
 
@@ -72,7 +74,7 @@ class StaffMutationServiceTest {
         service = new StaffMutationService(
                 staffRepository, specialtyRepository, appRoleRepository, scheduleRepository,
                 auditHistoryService, authContextService, passwordEncoder, cacheEvictor,
-                notificationService);
+                notificationService, databaseCompatibilityHelper);
     }
 
     private com.hospital.scheduler.dto.request.StaffRequest validRequest() {

@@ -16,6 +16,7 @@ import com.hospital.scheduler.exception.ConflictException;
 import com.hospital.scheduler.exception.ForbiddenOperationException;
 import com.hospital.scheduler.exception.ResourceNotFoundException;
 import com.hospital.scheduler.repository.AppRoleRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.ScheduleRepository;
 import com.hospital.scheduler.repository.SpecialtyRepository;
 import com.hospital.scheduler.repository.StaffRepository;
@@ -66,6 +67,7 @@ public class StaffMutationService {
     private final CacheEvictor cacheEvictor;
     @Lazy
     private final NotificationService notificationService;
+    private final DatabaseCompatibilityHelper databaseCompatibilityHelper;
 
     /**
      * Create a new staff member with optional role assignment.
@@ -326,7 +328,7 @@ public class StaffMutationService {
     private String generateStaffCode() {
         // Format: NV001, NV002, ... Uses DB MAX query for efficiency.
         String prefix = "NV";
-        int maxNum = staffRepository.findMaxStaffCodeNumber(prefix, prefix.length());
+        int maxNum = databaseCompatibilityHelper.findMaxStaffCodeNumber(prefix, prefix.length());
         return prefix + String.format("%03d", maxNum + 1);
     }
 

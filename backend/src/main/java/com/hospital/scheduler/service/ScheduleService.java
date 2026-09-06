@@ -16,6 +16,7 @@ import com.hospital.scheduler.exception.ResourceNotFoundException;
 import com.hospital.scheduler.dto.request.NotificationDTO;
 import com.hospital.scheduler.config.CacheConfig;
 import com.hospital.scheduler.repository.CompensationDayRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.HolidayRepository;
 import com.hospital.scheduler.repository.ScheduleConflictRepository;
 import com.hospital.scheduler.repository.SchedulePeriodRepository;
@@ -56,6 +57,7 @@ public class ScheduleService {
     private final StaffRepository staffRepository;
     private final ShiftTypeRepository shiftTypeRepository;
     private final CompensationDayRepository compensationDayRepository;
+    private final DatabaseCompatibilityHelper databaseCompatibilityHelper;
     private final ScheduleConflictRepository scheduleConflictRepository;
     private final HolidayRepository holidayRepository;
     private final ConflictDetectionService conflictDetectionService;
@@ -468,7 +470,7 @@ public class ScheduleService {
         // Returning the IGNORE result also lets us audit-log only newly-created
         // rows, which is the correct semantics.
         try {
-            int inserted = compensationDayRepository.insertIgnoreCompensationDay(
+            int inserted = databaseCompatibilityHelper.insertCompensationDayIfAbsent(
                     schedule.getStaff().getId(),
                     schedule.getPeriod().getId(),
                     schedule.getId(),

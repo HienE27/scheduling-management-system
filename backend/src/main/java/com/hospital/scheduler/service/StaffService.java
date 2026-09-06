@@ -17,6 +17,7 @@ import com.hospital.scheduler.exception.ConflictException;
 import com.hospital.scheduler.exception.ForbiddenOperationException;
 import com.hospital.scheduler.exception.ResourceNotFoundException;
 import com.hospital.scheduler.repository.AppRoleRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.SpecialtyRepository;
 import com.hospital.scheduler.repository.StaffRepository;
 import com.hospital.scheduler.security.AuthContextService;
@@ -61,6 +62,7 @@ public class StaffService {
     private final NotificationService notificationService;
     private final CacheEvictor cacheEvictor;
     private final StaffImportRowService importRowService;
+    private final DatabaseCompatibilityHelper databaseCompatibilityHelper;
 
     /**
      * Generate unique staff code in format NV001, NV002, etc.
@@ -68,7 +70,7 @@ public class StaffService {
      */
     private String generateStaffCode() {
         String prefix = "NV";
-        int maxNum = staffRepository.findMaxStaffCodeNumber(prefix, prefix.length());
+        int maxNum = databaseCompatibilityHelper.findMaxStaffCodeNumber(prefix, prefix.length());
         return prefix + String.format("%03d", maxNum + 1);
     }
 

@@ -17,6 +17,7 @@ import com.hospital.scheduler.entity.Staff;
 import com.hospital.scheduler.exception.BadRequestException;
 import com.hospital.scheduler.exception.ResourceNotFoundException;
 import com.hospital.scheduler.repository.CompensationDayRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.SchedulePeriodRepository;
 import com.hospital.scheduler.repository.ScheduleRepository;
 import com.hospital.scheduler.repository.ShiftRequirementRepository;
@@ -61,6 +62,7 @@ public class SchedulePeriodService {
     private final ShiftRequirementRepository shiftRequirementRepository;
     private final JdbcTemplate jdbcTemplate;
     private final CacheEvictor cacheEvictor;
+    private final DatabaseCompatibilityHelper databaseCompatibilityHelper;
 
     public List<SchedulePeriodResponse> getAllPeriods() {
         return periodRepository.findAll().stream()
@@ -557,7 +559,7 @@ public class SchedulePeriodService {
                     AuditHistory.ActionType.DELETE, sr, null, adminId);
         }
 
-        int deleted = shiftRequirementRepository.deleteL04RequirementsWithoutStaff(periodId);
+        int deleted = databaseCompatibilityHelper.deleteL04RequirementsWithoutStaff(periodId);
         log.info("Deleted {} L04 requirements without active staff for periodId={}", deleted, periodId);
         return deleted;
     }

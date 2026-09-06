@@ -66,14 +66,11 @@ public interface CompensationDayRepository extends JpaRepository<CompensationDay
     void deleteByScheduleId(@Param("scheduleId") Integer scheduleId);
 
     /**
-     * Insert compensation day using native query with INSERT IGNORE.
-     * Returns 1 if inserted, 0 if duplicate (ignored).
-     * This avoids DataIntegrityViolationException and Hibernate assertion failures.
+     * Insert compensation day idempotently.
+     *
+     * <p>Implementation lives in {@link DatabaseCompatibilityHelper} because
+     * MySQL ({@code INSERT IGNORE}) and Postgres ({@code ON CONFLICT DO NOTHING})
+     * use different syntax. Callers should inject the helper instead of using
+     * this method directly.
      */
-    @Modifying
-    @Query(value = "INSERT IGNORE INTO compensation_day (staff_id, period_id, schedule_id, shift_date, compensation_date, note, created_at, updated_at) " +
-            "VALUES (:staffId, :periodId, :scheduleId, :shiftDate, :compDate, :note, NOW(), NOW())", nativeQuery = true)
-    int insertIgnoreCompensationDay(@Param("staffId") Integer staffId, @Param("periodId") Integer periodId,
-                                   @Param("scheduleId") Integer scheduleId, @Param("shiftDate") LocalDate shiftDate,
-                                   @Param("compDate") LocalDate compDate, @Param("note") String note);
 }

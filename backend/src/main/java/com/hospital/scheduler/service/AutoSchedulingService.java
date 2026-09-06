@@ -72,6 +72,7 @@ public class AutoSchedulingService {
     private final StaffRepository staffRepository;
     private final ShiftRequirementRepository requirementRepository;
     private final CompensationDayRepository compensationDayRepository;
+    private final com.hospital.scheduler.repository.DatabaseCompatibilityHelper databaseCompatibilityHelper;
     private final LeaveRequestRepository leaveRequestRepository;
     private final ScheduleExchangeRepository scheduleExchangeRepository;
     private final ConflictDetectionService conflictDetectionService;
@@ -2732,7 +2733,7 @@ public class AutoSchedulingService {
                     // compensation dates from concurrent runs.
                     try {
                         LocalDate compDate = compensationDateCalculator.calculate(s.getWorkDate());
-                        compensationDayRepository.insertIgnoreCompensationDay(
+                        databaseCompatibilityHelper.insertCompensationDayIfAbsent(
                                 s.getStaff().getId(),
                                 period.getId(),
                                 s.getId(),
@@ -3495,7 +3496,7 @@ public class AutoSchedulingService {
                 LocalDate compensationDate = compensationDateCalculator.calculate(shiftDate);
                 
                 // Use INSERT IGNORE to avoid duplicate key errors - this is the proper fix
-                int inserted = compensationDayRepository.insertIgnoreCompensationDay(
+                int inserted = databaseCompatibilityHelper.insertCompensationDayIfAbsent(
                         schedule.getStaff().getId(),
                         schedule.getPeriod().getId(),
                         schedule.getId(),

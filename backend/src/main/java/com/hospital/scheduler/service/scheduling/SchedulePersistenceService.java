@@ -1,6 +1,8 @@
 package com.hospital.scheduler.service.scheduling;
 
 import com.hospital.scheduler.entity.*;
+import com.hospital.scheduler.repository.CompensationDayRepository;
+import com.hospital.scheduler.repository.DatabaseCompatibilityHelper;
 import com.hospital.scheduler.repository.ScheduleRepository;
 import com.hospital.scheduler.service.AuditHistoryService;
 import com.hospital.scheduler.util.CompensationDateCalculator;
@@ -26,15 +28,21 @@ public class SchedulePersistenceService {
     private final CompensationDateCalculator compensationDateCalculator;
     private final SchedulingStateAccessor stateAccessor;
     private final ScheduleRepository scheduleRepository;
+    private final CompensationDayRepository compensationDayRepository;
+    private final DatabaseCompatibilityHelper databaseCompatibilityHelper;
 
     public SchedulePersistenceService(AuditHistoryService auditHistoryService,
                                       CompensationDateCalculator compensationDateCalculator,
                                       SchedulingStateAccessor stateAccessor,
-                                      @Lazy ScheduleRepository scheduleRepository) {
+                                      @Lazy ScheduleRepository scheduleRepository,
+                                      CompensationDayRepository compensationDayRepository,
+                                      DatabaseCompatibilityHelper databaseCompatibilityHelper) {
         this.auditHistoryService = auditHistoryService;
         this.compensationDateCalculator = compensationDateCalculator;
         this.stateAccessor = stateAccessor;
         this.scheduleRepository = scheduleRepository;
+        this.compensationDayRepository = compensationDayRepository;
+        this.databaseCompatibilityHelper = databaseCompatibilityHelper;
     }
 
     /**
@@ -119,7 +127,7 @@ public class SchedulePersistenceService {
         }
 
         try {
-            int inserted = compensationDayRepository.insertIgnoreCompensationDay(
+            int inserted = databaseCompatibilityHelper.insertCompensationDayIfAbsent(
                     schedule.getStaff().getId(),
                     schedule.getPeriod().getId(),
                     schedule.getId(),
@@ -183,7 +191,7 @@ public class SchedulePersistenceService {
         }
 
         try {
-            int inserted = compensationDayRepository.insertIgnoreCompensationDay(
+            int inserted = databaseCompatibilityHelper.insertCompensationDayIfAbsent(
                     schedule.getStaff().getId(),
                     schedule.getPeriod().getId(),
                     schedule.getId(),

@@ -77,12 +77,11 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
 
     /**
      * Find the maximum numeric suffix of staff codes with the given prefix.
-     * Uses database-level MAX for efficiency instead of loading all staff.
-     * Returns 0 if no matching codes exist.
+     *
+     * <p>Moved to {@link DatabaseCompatibilityHelper} because MySQL
+     * ({@code CAST ... AS UNSIGNED}) and Postgres ({@code CAST ... AS INTEGER})
+     * use different SQL. Callers should inject the helper.
      */
-    @Query(value = "SELECT COALESCE(MAX(CAST(SUBSTRING(staff_code, :prefixLen + 1) AS UNSIGNED)), 0) " +
-                   "FROM staff WHERE staff_code LIKE CONCAT(:prefix, '%')", nativeQuery = true)
-    int findMaxStaffCodeNumber(@Param("prefix") String prefix, @Param("prefixLen") int prefixLen);
 
     /**
      * Find staff by IDs with roles pre-fetched for efficient batch lookups.
