@@ -1,14 +1,12 @@
 #!/bin/sh
-# startup.sh - Logs to stdout/stderr AND persists to /tmp/startup.log
-# Helps debug startup failures (Render free tier doesn't expose stdout easily)
+# startup.sh - Logs to stdout/stderr (Render captures these automatically).
+# Render free tier also streams Docker container stdout to the Logs tab.
 echo "=== Hospital Scheduler startup at $(date -u) ==="
 echo "Profile: ${SPRING_PROFILES_ACTIVE:-default}"
 echo "DB_HOST: ${DB_HOST:-NOT_SET}"
 echo "JAVA_OPTS: ${JAVA_OPTS:-default}"
 echo "==========================================="
 
-# Run app, capture exit code
-java $JAVA_OPTS -jar /app/app.jar 2>&1 | tee /tmp/startup.log
-exit_code=${PIPESTATUS[0]}
-echo "Application exited with code: $exit_code at $(date -u)" >> /tmp/startup.log
-exit $exit_code
+# Run app in foreground (POSIX /bin/sh compatible - no bash-only features).
+# Render captures stdout/stderr for the Logs tab automatically.
+exec java $JAVA_OPTS -jar /app/app.jar
