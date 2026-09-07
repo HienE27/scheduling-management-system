@@ -27,6 +27,10 @@ COPY frontend/. ./
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Inject backend URL for Next.js rewrites at build time
+# (next.config.ts rewrites /api/* → $REWRITE_DEST/api/*)
+ENV REWRITE_DEST=https://scheduling-management-system.onrender.com
+
 # Build the application
 RUN pnpm build
 
